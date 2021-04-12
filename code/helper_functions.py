@@ -88,7 +88,7 @@ def filter_erroneousdata(img, minval, maxval):
     return img
 
 
-def plot_VI(vi, vi_name, minval, maxval, colormap = plt.cm.viridis, output = False, *args):
+def plot_VI(vi, vi_name, minval, maxval, cmap = plt.cm.viridis, output = False, *args):
     """ Plot the VI (note: this is not a geospatial plot, simply a heatmap)
     
 
@@ -102,7 +102,7 @@ def plot_VI(vi, vi_name, minval, maxval, colormap = plt.cm.viridis, output = Fal
         minimum VI value
     maxval : int
         maximum VI value
-    colormap : matplotlib/colorcet/cmocean colormap object
+    cmap : matplotlib/colorcet/cmocean colormap object
         colormap. The default value is plt.cm.viridis.
     output : Boolean
         do you want to output the plot? The default value is False.
@@ -114,28 +114,33 @@ def plot_VI(vi, vi_name, minval, maxval, colormap = plt.cm.viridis, output = Fal
     """
     fig, ax = plt.subplots(1, 1, figsize = [4.5, 6])
     try:
-        a = ax.imshow(vi[0], vmin = minval, vmax = maxval)
+        a = ax.imshow(vi[0], vmin = minval, vmax = maxval, cmap = cmap)
         plt.colorbar(a, ax = ax, label = vi_name)
         plt.show()
     except:
-        print("Error. The first dimension of the VI array is likely >1. Shape should be 1xrowxcol")
+        print("Error. The first dimension of the VI array is likely >1. Shape should be band*row*col")
     
     
-def output_VI(outfn, vi, metadata):
-    """
+def output_VI(vi, metadata, outfn):
+    """Output the VI as a tif
     
 
     Parameters
     ----------
-    outfn : TYPE
-        DESCRIPTION.
-    vi : TYPE
-        DESCRIPTION.
-    metadata : TYPE
-        DESCRIPTION.
+    outfn : numpy array
+        VI image
+    metadata : dict
+        dictionary with image metadata (from Rasterio)
+    outfn : str
+        path + name for output
 
     Returns
     -------
     None.
 
     """
+    try:
+        with rio.open(outfn, mode = 'w', **metadata) as dst:
+            dst.write(vi)
+    except:
+        print("Error. The first dimension of the VI array is likely >1. Shape should be band*row*col")
